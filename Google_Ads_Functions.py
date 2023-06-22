@@ -1,8 +1,14 @@
-from datetime import datetime, timedelta, time
+import datetime
+import time
 import google.api_core.exceptions
 from google.ads.googleads.client import GoogleAdsClient
 import json
 from keys import credentials
+
+#Resolving bad references due to GCF import bug.
+timedelta = datetime.timedelta
+datetime = datetime.datetime
+
 
 # Set up the Google Ads client with the custom configuration
 google_ads_client = GoogleAdsClient.load_from_dict(credentials)
@@ -50,6 +56,7 @@ def get_subaccounts(manager_customer_id):
                 time.sleep(3)
 
 
+
 def get_metrics(customer_id):
 
     retrieve_data = {}
@@ -88,6 +95,7 @@ def get_metrics(customer_id):
                 impressions_30_days = row.metrics.impressions
                 ctr_30_days = (clicks_30_days / impressions_30_days) * \
                     100 if impressions_30_days > 0 else 0
+                ctr_30_days = ctr_30_days/100 # Converts int to decimal.
                 cost_micros_30_days = row.metrics.cost_micros
                 spend_30_days = cost_micros_30_days / 1000000
                 retrieve_data[customer_id] = {
@@ -124,6 +132,7 @@ def get_metrics(customer_id):
                 impressions_7_days = row.metrics.impressions
                 ctr_7_days = (clicks_7_days / impressions_7_days) * \
                     100 if impressions_7_days > 0 else 0
+                ctr_7_days = ctr_7_days/100 # Converts int to decimal.
                 retrieve_data[customer_id].update({'ctr_7_days': ctr_7_days})
     except google.ads.googleads.errors.GoogleAdsException as e:
         print(e)
@@ -154,6 +163,7 @@ def get_metrics(customer_id):
                 impressions_last_month = row.metrics.impressions
                 ctr_last_month = (clicks_last_month / impressions_last_month) * \
                     100 if impressions_last_month > 0 else 0
+                ctr_last_month = ctr_last_month/100 # Converts int to decimal.
                 retrieve_data[customer_id].update(
                     {'clicks_last_month': clicks_last_month, 'ctr_last_month': ctr_last_month})
     except google.ads.googleads.errors.GoogleAdsException as e:
@@ -190,13 +200,23 @@ def get_metrics(customer_id):
             clicks_14_days = row.metrics.clicks
             conversion_rate_14_days = (
                 conversions_14_days / clicks_14_days) * 100 if clicks_14_days > 0 else 0
+            conversion_rate_14_days = conversion_rate_14_days/100 # Converts int to decimal.
             retrieve_data[customer_id].update(
                 {'conversion_rate_14_days': conversion_rate_14_days})
 
-    # getting start and end date for query last month to date data
-    end_date = datetime.now().date().replace(day=1) - timedelta(days=1)
-    start_date = end_date.replace(day=1)
-    end_date = datetime.now().date()
+# Calculate dates for Last Month To Date query.
+    # Get the current date
+    current_date = datetime.now().date()
+    # Calculate the first day of the previous month
+    first_day_of_previous_month = current_date.replace(day=1) - timedelta(days=1)
+    first_day_of_previous_month = first_day_of_previous_month.replace(day=1)
+    # Set the start date as the first day of the previous month
+    start_date = first_day_of_previous_month
+    # Calculate the last day of the previous month
+    last_day_of_previous_month = first_day_of_previous_month.replace(day=current_date.day)
+    # Set the end date as the last day of the previous month
+    end_date = last_day_of_previous_month
+    # Convert the start and end dates to string representations
     start_date_str = start_date.strftime("%Y-%m-%d")
     end_date_str = end_date.strftime("%Y-%m-%d")
 
@@ -251,11 +271,11 @@ def get_metrics(customer_id):
 
 # function to write retrieve data into data.json
 def update_data(data_to_add):
-    with open("data.json") as data_file:
+    with open('/tmp/data.json') as data_file:
         data = json.load(data_file)
 
     data.append(data_to_add)
-    with open("data.json", "w") as data_file:
+    with open('/tmp/data.json', "w") as data_file:
         json.dump(data, data_file, indent=4)
         print(len(data)) # Prints number of accounts in JSON.
 

@@ -1,7 +1,7 @@
 # Target Spreadsheet
 spreadsheet_id = "1D9VnmhSYjmIjWdTX6nO79HR6uLECJQ_J3dh5KkojntM"
 spreadsheet_name = "Client Tracker"
-worksheet_id = "647300549"
+worksheet_id = 647300549
 
 column_order = ['customer_name',
                 'ctr_7_days',

@@ -7,7 +7,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from gspread_dataframe import set_with_dataframe
 from spreadsheet_parameters import column_order, spreadsheet_name, worksheet_id, spreadsheet_id
-
+from send_email import send_email
 
 
 # Load JSON data into a dataframe
@@ -48,26 +48,28 @@ def df_to_gsheets(df, json_key_file_path, spreadsheet_name, column_order, worksh
 # Main function
 def load_df_and_write_to_sheet():
     # Load data
-    df = load_json_to_df('data.json')
+    df = load_json_to_df('/tmp/data.json')
 
     # Write data to Google Sheets
     df_to_gsheets(df, 'Service-Account_Key.json', spreadsheet_name, column_order, worksheet_id)
 
-def purge_json():
-    # Removes JSON file in order to start from scratch.
-    if os.path.isfile("data.json"):
-        os.remove("data.json")
-        print("File deleted successfully.")
-        file = open("data.json", "w")
-        file.write("["
-                   "]")
-        file.close()
 
+def purge_json():
+    # Deletes JSON to start from scratch.
+    file_path = '/tmp/data.json'  # Save the file in the /tmp directory. This absolute reference only works on GCF.
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        print('File removed successfully')
     else:
         print("File not found.")
+    # Creates New File
+    file = open(file_path, "w")
+    file.write("["
+               "]")
+    file.close()
 
 
-if __name__ == "__main__":
+def purge_get_write(request):
     # Clears JSON file of Ads Data
     purge_json()
 
@@ -76,3 +78,9 @@ if __name__ == "__main__":
 
     # # Write the dataframe to the sheet.
     load_df_and_write_to_sheet()
+
+    return "Function completed successsfully!"
+
+
+if __name__ == "__main__":
+    purge_get_write("")
