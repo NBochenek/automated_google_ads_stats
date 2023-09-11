@@ -35,8 +35,12 @@ def get_subaccounts(manager_customer_id):
     search_request.query = query
 
     ga_service = google_ads_client.get_service("GoogleAdsService")
+
     # Create the stream
     stream = ga_service.search_stream(search_request)
+
+    failed_requests = [] # Inits list for failed requests. Will be looped later.
+
     for batch in stream:
         for row in batch.results:
             if row.customer_client.id == "1980549923": # Skips manager account.
@@ -48,12 +52,35 @@ def get_subaccounts(manager_customer_id):
                 print(e)
             except google.api_core.exceptions.ServiceUnavailable as e:
                 print(e)
-                print("Waiting 3 Seconds...")
+                failed_requests.append(row.customer_client.id)
+                print("Adding client ID to list and waiting 3 Seconds...")
                 time.sleep(3)
             except google.api_core.exceptions.InternalServerError as e:
                 print(e)
-                print("Waiting 3 Seconds...")
+                failed_requests.append(row.customer_client.id)
+                print("Adding client ID to list and waiting 3 Seconds...")
                 time.sleep(3)
+
+    # Loop to get the stragglers in failed requests.
+    for batch in stream:
+        for row in batch.results:
+            if row.customer_client.id in failed_requests: # Skips manager account.
+                print(f"Getting metrics for ID: {row.customer_client.id}")
+                try:
+                    get_metrics(row.customer_client.id)
+                except google.ads.googleads.errors.GoogleAdsException as e:
+                    print(e)
+                except google.api_core.exceptions.ServiceUnavailable as e:
+                    print(e)
+                    print("Adding client ID to list and waiting 3 Seconds...")
+                    time.sleep(3)
+                except google.api_core.exceptions.InternalServerError as e:
+                    print(e)
+                    print("Adding client ID to list and waiting 3 Seconds...")
+                    time.sleep(3)
+                else:
+                    continue
+
 
 
 

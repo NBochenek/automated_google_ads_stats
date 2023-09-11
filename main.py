@@ -70,16 +70,24 @@ def purge_json():
 
 
 def purge_get_write(request):
-    # Clears JSON file of Ads Data
-    purge_json()
+    try:
+        # Clears JSON file of Ads Data
+        purge_json()
 
-    # # Runs main Google Ads functions to gather data to JSON.
-    get_ads_data()
+        # # Runs main Google Ads functions to gather data to JSON.
+        get_ads_data()
 
-    # # Write the dataframe to the sheet.
-    load_df_and_write_to_sheet()
+        # # Write the dataframe to the sheet.
+        load_df_and_write_to_sheet()
 
-    return "Function completed successsfully!"
+        return "Function completed successsfully!"
+    except:
+        send_email(
+            "Error in Automated Stats = Google Ads",
+            "See subject. Investigate in the Google Cloud Console:"
+        "https: // console.cloud.google.com / welcome?cloudshell = false & project = npm - automated - stats - ads"
+        )
+        return "Function failed. Email sent."
 
 
 if __name__ == "__main__":
