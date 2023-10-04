@@ -5,6 +5,8 @@ from google.ads.googleads.client import GoogleAdsClient
 import json
 from keys import credentials
 
+json_filepath = '/tmp/data.json'
+
 #Resolving bad references due to GCF import bug.
 timedelta = datetime.timedelta
 datetime = datetime.datetime
@@ -24,7 +26,9 @@ def get_subaccounts(manager_customer_id):
         SELECT
           customer_client.id
         FROM customer_client
-        WHERE customer_client.level = 1"""
+        WHERE customer_client.level = 1
+        AND customer_client.status = ENABLED
+        """
 
     search_request = google_ads_client.get_type("SearchGoogleAdsStreamRequest")
 
@@ -144,6 +148,7 @@ def get_metrics(customer_id):
         SELECT
         customer.id,
         metrics.clicks,
+        metrics.conversions,
         metrics.impressions
         FROM customer
         WHERE
@@ -160,7 +165,11 @@ def get_metrics(customer_id):
                 ctr_7_days = (clicks_7_days / impressions_7_days) * \
                     100 if impressions_7_days > 0 else 0
                 ctr_7_days = ctr_7_days/100 # Converts int to decimal.
-                retrieve_data[customer_id].update({'ctr_7_days': ctr_7_days})
+                conversions_7_days = row.metrics.conversions
+                conversion_rate_7_days = (
+                                                 conversions_7_days / clicks_7_days) if clicks_7_days > 0 else 0
+                retrieve_data[customer_id].update(
+                    {'ctr_7_days': ctr_7_days, "conversion_rate_7_days": conversion_rate_7_days})
     except google.ads.googleads.errors.GoogleAdsException as e:
         print(e)
 
@@ -298,11 +307,11 @@ def get_metrics(customer_id):
 
 # function to write retrieve data into data.json
 def update_data(data_to_add):
-    with open('/tmp/data.json') as data_file:
+    with open(json_filepath) as data_file:
         data = json.load(data_file)
 
     data.append(data_to_add)
-    with open('/tmp/data.json', "w") as data_file:
+    with open(json_filepath, "w") as data_file:
         json.dump(data, data_file, indent=4)
         print(len(data)) # Prints number of accounts in JSON.
 

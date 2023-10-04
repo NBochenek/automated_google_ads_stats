@@ -9,6 +9,8 @@ from gspread_dataframe import set_with_dataframe
 from spreadsheet_parameters import column_order, spreadsheet_name, worksheet_id, spreadsheet_id
 from send_email import send_email
 
+json_filepath = '/tmp/data.json'
+
 
 # Load JSON data into a dataframe
 def load_json_to_df(file_path):
@@ -47,16 +49,19 @@ def df_to_gsheets(df, json_key_file_path, spreadsheet_name, column_order, worksh
 
 # Main function
 def load_df_and_write_to_sheet():
-    # Load data
-    df = load_json_to_df('/tmp/data.json')
+    try:
+        # Load data
+        df = load_json_to_df(json_filepath)
 
-    # Write data to Google Sheets
-    df_to_gsheets(df, 'Service-Account_Key.json', spreadsheet_name, column_order, worksheet_id)
+        # Write data to Google Sheets
+        df_to_gsheets(df, 'Service-Account_Key.json', spreadsheet_name, column_order, worksheet_id)
+    except Exception as e:
+        print(e)
 
 
 def purge_json():
     # Deletes JSON to start from scratch.
-    file_path = '/tmp/data.json'  # Save the file in the /tmp directory. This absolute reference only works on GCF.
+    file_path = json_filepath  # Save the file in the /tmp directory. This absolute reference only works on GCF.
     if os.path.exists(file_path):
         os.remove(file_path)
         print('File removed successfully')
@@ -71,10 +76,10 @@ def purge_json():
 
 def purge_get_write(request):
     try:
-        # Clears JSON file of Ads Data
+        # # Clears JSON file of Ads Data
         purge_json()
-
-        # # Runs main Google Ads functions to gather data to JSON.
+        #
+        # # # Runs main Google Ads functions to gather data to JSON.
         get_ads_data()
 
         # # Write the dataframe to the sheet.
