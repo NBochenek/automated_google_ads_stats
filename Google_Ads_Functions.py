@@ -5,7 +5,7 @@ from google.ads.googleads.client import GoogleAdsClient
 import json
 from keys import credentials
 
-json_filepath = '/tmp/data.json'
+json_filepath = '/tmp/data.json' # This filepath is in both main.py and GAF.py
 
 #Resolving bad references due to GCF import bug.
 timedelta = datetime.timedelta
@@ -64,6 +64,8 @@ def get_subaccounts(manager_customer_id):
                 failed_requests.append(row.customer_client.id)
                 print("Adding client ID to list and waiting 3 Seconds...")
                 time.sleep(3)
+            except Exception as e:
+                print(e)
 
     # Loop to get the stragglers in failed requests.
     for batch in stream:
@@ -82,6 +84,10 @@ def get_subaccounts(manager_customer_id):
                     print(e)
                     print("Adding client ID to list and waiting 3 Seconds...")
                     time.sleep(3)
+                except Exception as e:
+                    print(e)
+
+
                 else:
                     continue
 
@@ -240,21 +246,23 @@ def get_metrics(customer_id):
             retrieve_data[customer_id].update(
                 {'conversion_rate_14_days': conversion_rate_14_days})
 
-# Calculate dates for Last Month To Date query.
+    # Calculate dates for Last Month To Date query.
     # Get the current date
     current_date = datetime.now().date()
     # Calculate the first day of the previous month
     first_day_of_previous_month = current_date.replace(day=1) - timedelta(days=1)
     first_day_of_previous_month = first_day_of_previous_month.replace(day=1)
     # Set the start date as the first day of the previous month
-    start_date = first_day_of_previous_month
-    # Calculate the last day of the previous month
-    last_day_of_previous_month = first_day_of_previous_month.replace(day=current_date.day)
-    # Set the end date as the last day of the previous month
-    end_date = last_day_of_previous_month
-    # Convert the start and end dates to string representations
-    start_date_str = start_date.strftime("%Y-%m-%d")
-    end_date_str = end_date.strftime("%Y-%m-%d")
+    start_date_lmd = first_day_of_previous_month
+    # Calculate the last month to date, which should be the same day of the last month as today
+    end_date_lmd = current_date.replace(day=1) - timedelta(days=1)
+    end_date_lmd = end_date_lmd.replace(day=current_date.day)
+    # Check if last month had fewer days than today's date, if so, use the last day of last month
+    if end_date_lmd.day > current_date.day:
+        end_date_lmd = current_date.replace(day=1) - timedelta(days=1)
+    # Convert the start and end dates to string representations for the Last Month To Date query
+    start_date_str = start_date_lmd.strftime("%Y-%m-%d")
+    end_date_str = end_date_lmd.strftime("%Y-%m-%d")
 
     # query for last month to date clicks
     query = f"""

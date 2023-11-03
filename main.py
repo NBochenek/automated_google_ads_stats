@@ -9,7 +9,7 @@ from gspread_dataframe import set_with_dataframe
 from spreadsheet_parameters import column_order, spreadsheet_name, worksheet_id, spreadsheet_id
 from send_email import send_email
 
-json_filepath = '/tmp/data.json'
+json_filepath = '/tmp/data.json' #This filepath is in both main.py and GAF.py
 
 
 # Load JSON data into a dataframe
@@ -86,11 +86,13 @@ def purge_get_write(request):
         load_df_and_write_to_sheet()
 
         return "Function completed successsfully!"
-    except:
+    except Exception as e:
         send_email(
             "Error in Automated Stats = Google Ads",
             "See subject. Investigate in the Google Cloud Console:"
         "https: // console.cloud.google.com / welcome?cloudshell = false & project = npm - automated - stats - ads"
+        f"Error Message:\n"
+            f"{e}"
         )
         return "Function failed. Email sent."
 
