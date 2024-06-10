@@ -58,38 +58,30 @@ def get_subaccounts(manager_customer_id):
                 print(e)
                 failed_requests.append(row.customer_client.id)
                 print("Adding client ID to list and waiting 3 Seconds...")
-                time.sleep(3)
+                # time.sleep(3)
             except google.api_core.exceptions.InternalServerError as e:
                 print(e)
                 failed_requests.append(row.customer_client.id)
                 print("Adding client ID to list and waiting 3 Seconds...")
-                time.sleep(3)
+                # time.sleep(3)
             except Exception as e:
                 print(e)
 
     # Loop to get the stragglers in failed requests.
-    for batch in stream:
-        for row in batch.results:
-            if row.customer_client.id in failed_requests: # Skips manager account.
-                print(f"Getting metrics for ID: {row.customer_client.id}")
-                try:
-                    get_metrics(row.customer_client.id)
-                except google.ads.googleads.errors.GoogleAdsException as e:
-                    print(e)
-                except google.api_core.exceptions.ServiceUnavailable as e:
-                    print(e)
-                    print("Adding client ID to list and waiting 3 Seconds...")
-                    time.sleep(3)
-                except google.api_core.exceptions.InternalServerError as e:
-                    print(e)
-                    print("Adding client ID to list and waiting 3 Seconds...")
-                    time.sleep(3)
-                except Exception as e:
-                    print(e)
-
-
-                else:
-                    continue
+    #TODO The script will time out on GCF before this runs.
+    print(f"Processing {len(failed_requests)} clients that errored initially.")
+    for id in failed_requests:
+        print(f"Getting metrics for ID: {id}")
+        try:
+            get_metrics(id)
+        except google.ads.googleads.errors.GoogleAdsException as e:
+            print(e)
+        except google.api_core.exceptions.ServiceUnavailable as e:
+            print(e)
+        except google.api_core.exceptions.InternalServerError as e:
+            print(e)
+        except Exception as e:
+            print(e)
 
 
 
