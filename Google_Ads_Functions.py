@@ -173,37 +173,37 @@ def get_metrics(customer_id):
     except google.ads.googleads.errors.GoogleAdsException as e:
         print(e)
 
-        # Get the start and end date for the previous 7 days (last week).
-        end_date = datetime.now().date() - timedelta(days=8)
-        start_date = end_date - timedelta(days=7)  # To get 7 full days excluding today
-        start_date_str = start_date.strftime("%Y-%m-%d")
-        end_date_str = end_date.strftime("%Y-%m-%d")
+    # Get the start and end date for the previous 7 days (last week).
+    end_date = datetime.now().date() - timedelta(days=8)
+    start_date = end_date - timedelta(days=7)  # To get 7 full days excluding today
+    start_date_str = start_date.strftime("%Y-%m-%d")
+    end_date_str = end_date.strftime("%Y-%m-%d")
 
-        query = f"""
-                SELECT
-                customer.id,
-                metrics.clicks,
-                metrics.impressions,
-                metrics.ctr,
-                metrics.conversions_from_interactions_rate,
-                metrics.conversions
-                FROM customer
-                WHERE
-                segments.date BETWEEN "{start_date_str}" AND "{end_date_str}"
-                AND customer.status = 'ENABLED' 
-            """
+    query = f"""
+            SELECT
+            customer.id,
+            metrics.clicks,
+            metrics.impressions,
+            metrics.ctr,
+            metrics.conversions_from_interactions_rate,
+            metrics.conversions
+            FROM customer
+            WHERE
+            segments.date BETWEEN "{start_date_str}" AND "{end_date_str}"
+            AND customer.status = 'ENABLED' 
+        """
 
-        search_request.query = query
-        try:
-            stream = ga_service.search_stream(search_request)
-            for batch in stream:
-                for row in batch.results:
-                    cr_7_days = row.metrics.conversions_from_interactions_rate
-                    retrieve_data[customer_id].update({
-                        "converstion_rate_previous_7_days": cr_7_days
-                    })
-        except google.ads.googleads.errors.GoogleAdsException as e:
-            print(e)
+    search_request.query = query
+    try:
+        stream = ga_service.search_stream(search_request)
+        for batch in stream:
+            for row in batch.results:
+                cr_7_days = row.metrics.conversions_from_interactions_rate
+                retrieve_data[customer_id].update({
+                    "converstion_rate_previous_7_days": cr_7_days
+                })
+    except google.ads.googleads.errors.GoogleAdsException as e:
+        print(e)
 
     # getting start and end date for query last month data
     end_date = datetime.now().date().replace(day=1) - timedelta(days=1)
@@ -211,12 +211,13 @@ def get_metrics(customer_id):
     start_date_str = start_date.strftime("%Y-%m-%d")
     end_date_str = end_date.strftime("%Y-%m-%d")
 
-    # query for last month ctr,clicks
+    # query for last month ctr,clicks, spend
     query = f"""
         SELECT
         customer.id,
         metrics.clicks,
-        metrics.impressions
+        metrics.impressions,
+        metrics.cost_micros
         FROM customer
         WHERE
         segments.date BETWEEN "{start_date_str}" AND "{end_date_str}"
@@ -232,8 +233,9 @@ def get_metrics(customer_id):
                 ctr_last_month = (clicks_last_month / impressions_last_month) * \
                     100 if impressions_last_month > 0 else 0
                 ctr_last_month = ctr_last_month/100 # Converts int to decimal.
+                spend_last_month = row.metrics.cost_micros / 1000000
                 retrieve_data[customer_id].update(
-                    {'clicks_last_month': clicks_last_month, 'ctr_last_month': ctr_last_month})
+                    {'clicks_last_month': clicks_last_month, 'ctr_last_month': ctr_last_month, 'spend_last_month': spend_last_month})
     except google.ads.googleads.errors.GoogleAdsException as e:
         print(e)
 
