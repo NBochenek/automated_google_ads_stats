@@ -217,7 +217,8 @@ def get_metrics(customer_id):
         customer.id,
         metrics.clicks,
         metrics.impressions,
-        metrics.cost_micros
+        metrics.cost_micros,
+        metrics.conversions
         FROM customer
         WHERE
         segments.date BETWEEN "{start_date_str}" AND "{end_date_str}"
@@ -234,8 +235,11 @@ def get_metrics(customer_id):
                     100 if impressions_last_month > 0 else 0
                 ctr_last_month = ctr_last_month/100 # Converts int to decimal.
                 spend_last_month = row.metrics.cost_micros / 1000000
+                conversions_last_month = row.metrics.conversions
                 retrieve_data[customer_id].update(
-                    {'clicks_last_month': clicks_last_month, 'ctr_last_month': ctr_last_month, 'spend_last_month': spend_last_month})
+                    {'clicks_last_month': clicks_last_month, 'ctr_last_month': ctr_last_month, 'spend_last_month': spend_last_month,
+                     'impressions_last_month': impressions_last_month, 'conversions_last_month': conversions_last_month})
+                # print(f"Debug Impressions: {retrieve_data[customer_id].get('impressions_last_month')}")
     except google.ads.googleads.errors.GoogleAdsException as e:
         print(e)
 

@@ -17,7 +17,9 @@ column_order = ['customer_name',
                 'id',
                 'conversion_rate_7_days',
                 'converstion_rate_previous_7_days',
-                'spend_last_month'
+                'spend_last_month',
+                'impressions_last_month',
+                'conversions_last_month'
                 ]
 
 # Spreadsheet Reference: #TODO Make this a dictionary or object.
