@@ -85,7 +85,7 @@ def purge_get_write(request):
         # # Write the dataframe to the sheet.
         load_df_and_write_to_sheet()
 
-        return "Function completed successsfully!"
+        return "Function completed successfully!"
     except Exception as e:
         send_email(
             "Error in Automated Stats = Google Ads",

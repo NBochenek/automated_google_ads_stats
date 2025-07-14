@@ -19,7 +19,8 @@ column_order = ['customer_name',
                 'converstion_rate_previous_7_days',
                 'spend_last_month',
                 'impressions_last_month',
-                'conversions_last_month'
+                'conversions_last_month',
+                'date_generated'
                 ]
 
 # Spreadsheet Reference: #TODO Make this a dictionary or object.

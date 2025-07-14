@@ -341,6 +341,11 @@ def get_metrics(customer_id):
             retrieve_data[customer_id].update(
                 {'clicks_this_month_to_date': clicks_this_month_to_date, 'spend_this_month_to_date': spend_this_month_to_date})
 
+    #Add date data to the dict
+    today = datetime.now().date().strftime("%Y-%m-%d")
+    retrieve_data[customer_id].update({'date_generated': today})
+    # print(retrieve_data)
+
     update_data(retrieve_data)
     print(f"Finished gathering data for {customer_name}.")
 
